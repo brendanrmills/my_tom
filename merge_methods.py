@@ -15,6 +15,7 @@ def merge_mars(mars_alert_list):
         except:
             target = MARSBroker().to_target(alert)
             created = True
+            
         #rename the dictionaty
         mars_properties = {}
         for k in alert['candidate'].keys():
