@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from tom_targets.models import Target, TargetClassification
+from tom_targets.models import Target
 from tom_alerts.brokers.mars import MARSBroker
 from tom_antares.antares import ANTARESBroker
 from tom_alerts.brokers.alerce import ALeRCEBroker
@@ -7,35 +7,40 @@ from tom_fink.fink import FinkBroker
 from merge_methods import *
 import time, json, logging, requests
 from astropy.time import Time
+from classifications.models import TargetClassification
 
 class Command(BaseCommand):
 
-    help = 'This command calls two brokers, gets the alerts for a day and merges the alerts via Targets and TargetExtras'
+    help = 'This is a playground function so I can quickly test things out'
 
     def add_arguments(self, parser):
         parser.add_argument('--ztf', help='Download data for a single target')
 
     def handle(self, *args, **options):
+        mjd__gt = 59087 #minimum date
+        mjd__lt = 59088 #maximum date
+        
+        tcs = TargetClassification.objects.all()
+        for tc in tcs:
+            print(tc.as_dict())
 
 
-        target = Target.objects.get(name = 'ZTF18abfhxsa')
-        target.save(extras = {'test': 50})
-        print(target.targetextra_set.get(key = 'test'))
 
-        sample_classif = {
-            'broker': 'test',
-            'type': 'star',
-            'prob': 0.75,
-            'mjd':50000
-        }
-        target.save(classification = sample_classif)
+        # alerce_broker = ALeRCEBroker()
+        # query = {
+        #     'stamp_classifier': '',
+        #     'lc_classifier': '',
+        #     'ra': '',
+        #     'dec': '',
+        #     'radius': '',
+        #     'lastmjd__gt': mjd__gt,
+        #     'lastmjd__lt': mjd__lt,
+        #     'max_pages':1 #this line supresses a longer output
+        # }
+        # alerce_alerts = alerce_broker.fetch_alerts(query)
+        # alerce_alert_list = list(alerce_alerts)[5:6]
 
-        c = TargetClassification.objects.get(target = target.id)
-        print(c)
-
-        c = target.targetclassification_set.all()
-        print(c)
-        print(c[0].as_dict())
+        # merge_alerce(alerce_alert_list)
 
         # st = time.time()
         # try: #create target

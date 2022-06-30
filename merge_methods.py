@@ -3,6 +3,8 @@ from tom_alerts.brokers.mars import MARSBroker
 from tom_antares.antares import ANTARESBroker
 from tom_alerts.brokers.alerce import ALeRCEBroker
 from tom_fink.fink import FinkBroker
+from classifications.models import TargetClassification
+from astropy.time import Time
 import json, requests, logging, time
 
 def merge_mars(mars_alert_list):
@@ -15,7 +17,7 @@ def merge_mars(mars_alert_list):
         except:
             target = MARSBroker().to_target(alert)
             created = True
-            
+
         #rename the dictionaty
         mars_properties = {}
         for k in alert['candidate'].keys():
@@ -64,6 +66,12 @@ def merge_fink(fink_alert_list):
 
         target.save(extras = fink_properties)
         save_broker_extra(target, 'Fink')
+
+        #deal with fink classification
+        classif = target.targetextra_set.get(key = 'fink_v:classification').typed_value('')
+        mjd = target.targetextra_set.get(key = 'fink_i:jd').typed_value('number') - 2400000
+        save_target_classification(target, 'Fink', '', classif, 0.0, mjd)
+
         print('Fink    Target', alert["i:objectId"], ' created'if created else ' updated!!!')
     logging.info(f'MergeFink took {time.time()-st} sec')
 
@@ -81,16 +89,17 @@ def merge_alerce(alerce_alert_list):
         for k in alert.keys():
             alerce_properties['alerce_{}'.format(k)] = alert[k]
 
+        #save the targetExtra data
+        target.save(extras = alerce_properties)
+        save_broker_extra(target, 'ALeRCE')
+
         # get the probabilities
         url = 'https://api.alerce.online/ztf/v1/objects/'+alert['oid']+'/probabilities'
         response = requests.get(url)
         response.raise_for_status()
         probs = response.json()
-        for i in range(len(probs)):
-            target.save(extras = {'alerce_classification'+str(i): probs[i]})
-
-        target.save(extras = alerce_properties)
-        save_broker_extra(target, 'ALeRCE')
+        alerce_probs(target, probs)
+        
         print('ALeRCE  Target', alert["oid"], ' created'if created else ' updated!!!')
     logging.info(f'MergeALeRCE took {time.time()-st} sec')
 
@@ -104,6 +113,24 @@ def save_broker_extra(target, broker_name):
         target.save(extras = {'broker': extra.typed_value('') + ', ' + broker_name})
     except:
         target.save(extras = {'broker': broker_name})
+
+def save_target_classification(target, broker, level, classif, prob, mjd):
+    c = TargetClassification.objects.create(target = target)
+    c.source = broker
+    c.level = level
+    c.classification = classif
+    c.probability = prob
+    c.mjd = mjd
+    c.save()
+
+def alerce_probs(target, probs):
+    mjd = target.targetextra_set.get(key = 'alerce_lastmjd').typed_value('number')
+    if probs:
+        for p in probs:
+            save_target_classification(target, 'ALeRCE', p['classifier_name'], p['class_name'], p['probability'], mjd)
+    else:
+        save_target_classification(target, 'ALeRCE', '', 'Unknown', 0.0, mjd)
+    
 
 def get_duplicates(targets):
     '''This function gets the targets that have been identified by multiple brokers'''
