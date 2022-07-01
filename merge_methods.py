@@ -1,4 +1,4 @@
-from tom_targets.models import Target
+from tom_targets.models import Target, TargetList
 from tom_alerts.brokers.mars import MARSBroker
 from tom_antares.antares import ANTARESBroker
 from tom_alerts.brokers.alerce import ALeRCEBroker
@@ -104,15 +104,18 @@ def merge_alerce(alerce_alert_list):
     logging.info(f'MergeALeRCE took {time.time()-st} sec')
 
 def save_broker_extra(target, broker_name):
+    '''This method saves the broker as a target extra and appends the target to the targetlist for that broker'''
+    TargetList.objects.get(name = broker_name).targets.add(target)
     try:
         extra = target.targetextra_set.get(key = 'broker')
         value = extra.typed_value('')
         broker_record = value.split(', ')
         if broker_name in broker_record:
-            return
+            return #Watch out!! there is a return here
         target.save(extras = {'broker': extra.typed_value('') + ', ' + broker_name})
     except:
         target.save(extras = {'broker': broker_name})
+    
 
 def save_target_classification(target, broker, level, classif, prob, mjd):
     c = TargetClassification.objects.create(target = target)
@@ -127,7 +130,10 @@ def alerce_probs(target, probs):
     mjd = target.targetextra_set.get(key = 'alerce_lastmjd').typed_value('number')
     if probs:
         for p in probs:
-            save_target_classification(target, 'ALeRCE', p['classifier_name'], p['class_name'], p['probability'], mjd)
+            if p['classifier_version'] =="stamp_classifier_1.0.4":
+                save_target_classification(target, 'ALeRCE*', p['classifier_name'] + '*', p['class_name'] + '*', p['probability'], mjd)
+            else:
+                save_target_classification(target, 'ALeRCE', p['classifier_name'], p['class_name'], p['probability'], mjd)
     else:
         save_target_classification(target, 'ALeRCE', '', 'Unknown', 0.0, mjd)
     
@@ -137,6 +143,7 @@ def get_duplicates(targets):
     duplicate_targets = []
     triplicate_targets = []
     for target in targets:
+        # print(target.name)
         broker_list = target.targetextra_set.get(key= 'broker').typed_value('').split(', ')
 
         if len(broker_list) ==2:
