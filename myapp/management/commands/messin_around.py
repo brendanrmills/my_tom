@@ -8,6 +8,7 @@ from merge_methods import *
 import time, json, logging, requests
 from astropy.time import Time
 from classifications.models import TargetClassification
+from dateutil.parser import parse
 
 class Command(BaseCommand):
 
@@ -22,11 +23,12 @@ class Command(BaseCommand):
 
         target = Target.objects.get(name = 'ZTF20abwyboe')
         tc = TargetClassification.objects.get(target = target)
+        print(tc)
+        tc = target.targetclassification_set.all()
+        print(tc)
 
-        mars_tg = TargetList.objects.create(name = "MARS")
-        antares_tg = TargetList.objects.create(name = "ANTARES")
-        fink_tg = TargetList.objects.create(name = "Fink")
-        alerce_tg = TargetList.objects.create(name = "ALeRCE")
+        
+
 
         # dups = TargetList.objects.create(name = 'Duplicates')
         # trips = TargetList.objects.create(name = 'Triplicates')

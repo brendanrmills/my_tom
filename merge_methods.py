@@ -27,7 +27,7 @@ def merge_mars(mars_alert_list):
         target.save(extras = mars_properties)
         save_broker_extra(target, 'MARS')
         # print statement
-        print('MARS    Target', alert['objectId'], ' created'if created else ' updated!!!')
+        # print('MARS    Target', alert['objectId'], ' created'if created else ' updated!!!')
     logging.info(f'MergeMARS took {time.time()-st} sec')
 
 def merge_antares(antares_alert_list):
@@ -47,7 +47,7 @@ def merge_antares(antares_alert_list):
         target.save(extras = antares_properties)
         target.save(extras = {'antares_tags': alert['tags']})
         save_broker_extra(target, 'ANTARES')
-        print('ANTARES Target', alert['properties']['ztf_object_id'], ' created'if created else ' updated!!!')
+        # print('ANTARES Target', alert['properties']['ztf_object_id'], ' created'if created else ' updated!!!')
     logging.info(f'MergeANTARES took {time.time()-st} sec')
 
 def merge_fink(fink_alert_list):
@@ -72,7 +72,7 @@ def merge_fink(fink_alert_list):
         mjd = target.targetextra_set.get(key = 'fink_i:jd').typed_value('number') - 2400000
         save_target_classification(target, 'Fink', '', classif, 0.0, mjd)
 
-        print('Fink    Target', alert["i:objectId"], ' created'if created else ' updated!!!')
+        # print('Fink    Target', alert["i:objectId"], ' created'if created else ' updated!!!')
     logging.info(f'MergeFink took {time.time()-st} sec')
 
 def merge_alerce(alerce_alert_list):
@@ -100,7 +100,7 @@ def merge_alerce(alerce_alert_list):
         probs = response.json()
         alerce_probs(target, probs)
         
-        print('ALeRCE  Target', alert["oid"], ' created'if created else ' updated!!!')
+        #print('ALeRCE  Target', alert["oid"], ' created'if created else ' updated!!!')
     logging.info(f'MergeALeRCE took {time.time()-st} sec')
 
 def save_broker_extra(target, broker_name):
@@ -118,13 +118,11 @@ def save_broker_extra(target, broker_name):
     
 
 def save_target_classification(target, broker, level, classif, prob, mjd):
-    c = TargetClassification.objects.create(target = target)
-    c.source = broker
-    c.level = level
-    c.classification = classif
-    c.probability = prob
-    c.mjd = mjd
+    '''This method gets or creates a classification object that matches the values passed to the method
+    it returns the classification'''
+    c,_ = TargetClassification.objects.get_or_create(target = target, source = broker, level = level, classification = classif, probability = prob, mjd = mjd)
     c.save()
+    return c
 
 def alerce_probs(target, probs):
     mjd = target.targetextra_set.get(key = 'alerce_lastmjd').typed_value('number')
@@ -136,6 +134,8 @@ def alerce_probs(target, probs):
                 save_target_classification(target, 'ALeRCE', p['classifier_name'], p['class_name'], p['probability'], mjd)
     else:
         save_target_classification(target, 'ALeRCE', '', 'Unknown', 0.0, mjd)
+
+
     
 
 def get_duplicates(targets):
