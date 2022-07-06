@@ -1,9 +1,9 @@
 from django.test import TestCase
 from django.core.management.base import BaseCommand
-from tom_targets.models import Target
+from tom_targets.models import Target, TargetList
 from tom_alerts.brokers.mars import MARSBroker
 from tom_antares.antares import ANTARESBroker
-
+from classifications.models import TargetClassification
 from tom_targets.models import Target, TargetName
 from merge_methods import *
 import copy
@@ -128,24 +128,59 @@ mars_alert = {
 }
 
 
+
+
 class AlertComboTestCase(TestCase):
     def setUp(self):
+        #alerts
         temp_alert = copy.deepcopy(mars_alert)
         temp_alert['objectId'] = 'ZTF17aadevsj'
+        temp_alert2 = copy.deepcopy(mars_alert)
+        temp_alert2['objectId'] = 'ZTF21abjphlc'
         self.mars_alert_stream = iter([mars_alert, temp_alert])
         # self.antares_alert_stream = iter([antares_alert2, antares_alert1])
-        self.names = ['ZTF18aaadvkg', 'ZTF17aadevsj']
+        self.names = ['ZTF18aaadvkg', 'ZTF17aadevsj', 'ZTF21abjphlc']
+
+        #target stuff
+        self.test_target = Target.objects.create(name = 'ZTF18aaadvkg')
+        self.test_target.save(extras = {'broker': 'ALeRCE, Fink, MARS'})
+        self.test_target2 = Target.objects.create(name = 'ZTF17aadevsj')
+        self.test_target2.save(extras = {'broker': 'Fink, ANTARES'})
+        self.test_target3 = Target.objects.create(name = 'ZTF21abjphlc')
+        self.test_target3.save(extras = {'broker': 'MARS'})
+        TargetClassification.objects.create(target = self.test_target, probability = 0.45)
+        TargetClassification.objects.create(target = self.test_target, probability = 0.45)
+        TargetClassification.objects.create(target = self.test_target2, classification = 'Unknown')
 
     def test_merge_mars(self):
         mars_list = list(self.mars_alert_stream)
-        print(json.dumps(mars_list, indent = 3))
         merge_mars(mars_list)
 
         targets = list(Target.objects.all())
         for t in targets:
-            print(t.name)
-        for t in targets:
-            self.assertIn(t.name, self.names)
+            self.assertIn(t.name, self.names)    
+
+    def test_clean_duplicate_classifs(self):
+        tcs = TargetClassification.objects.filter(target = self.test_target)
+        self.assertEqual(len(tcs),2)
+        clean_duplicate_classifs()
+        tcs = TargetClassification.objects.filter(target = self.test_target)
+        self.assertEqual(len(tcs), 1)
+
+    def test_register_duplicates(self):
+        register_duplicates()
+        dups  = TargetList.objects.get(name = 'Duplicates').targets.all()
+        trips = TargetList.objects.get(name = 'Triplicates').targets.all()
+        alfin = TargetList.objects.get(name = 'ALeRCE + Fink').targets.all()
+        self.assertEqual(len(dups), 1)
+        self.assertEqual(len(trips), 1)
+        self.assertEqual(len(alfin), 1)
+
+    def test_find_unknowns(self):
+        unks, nc = find_unknowns()
+        self.assertEqual(unks, 1)
+        self.assertEqual(nc, 1)
+
 
 
 

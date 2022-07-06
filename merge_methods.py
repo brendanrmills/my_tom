@@ -105,7 +105,8 @@ def merge_alerce(alerce_alert_list):
 
 def save_broker_extra(target, broker_name):
     '''This method saves the broker as a target extra and appends the target to the targetlist for that broker'''
-    TargetList.objects.get(name = broker_name).targets.add(target)
+    tl, _ = TargetList.objects.get_or_create(name = broker_name)
+    tl.targets.add(target)
     try:
         extra = target.targetextra_set.get(key = 'broker')
         value = extra.typed_value('')
@@ -125,6 +126,8 @@ def save_target_classification(target, broker, level, classif, prob, mjd):
     return c
 
 def alerce_probs(target, probs):
+    '''This method handles the classification probability of the alerce classicication. It takes the json object
+    and saves it as a target_classification. It has a built in Unknown classification if there is no data given'''
     mjd = target.targetextra_set.get(key = 'alerce_lastmjd').typed_value('number')
     if probs:
         for p in probs:
@@ -135,13 +138,11 @@ def alerce_probs(target, probs):
     else:
         save_target_classification(target, 'ALeRCE', '', 'Unknown', 0.0, mjd)
 
-
-    
-
 def get_duplicates(targets):
     '''This function gets the targets that have been identified by multiple brokers'''
     duplicate_targets = []
     triplicate_targets = []
+    quads = []
     for target in targets:
         # print(target.name)
         broker_list = target.targetextra_set.get(key= 'broker').typed_value('').split(', ')
@@ -150,5 +151,76 @@ def get_duplicates(targets):
             duplicate_targets.append(target)
         if len(broker_list) == 3:
             triplicate_targets.append(target)
+        if len(broker_list) == 4:
+            quads.append(target)
+        
 
-    return duplicate_targets, triplicate_targets
+    return duplicate_targets, triplicate_targets, quads
+
+# These methods are for running in find_unknowns
+def clean_duplicate_classifs():
+    '''This method goes through all the targets and the assiciated target classifications,
+    and if a target has a duplicate classification it will delete the duplicate.'''
+
+    logging.info('Start: cleaning duplicate classifications')
+    st= time.time()
+    targets = list(Target.objects.all())
+    dups = 0
+    for t in targets:
+        tcs = TargetClassification.objects.filter(target = t)
+        tc_dicts = [tc.as_dict() for tc in tcs]
+        for tc in tcs:
+            if tc_dicts.count(tc.as_dict()) > 1:
+                dups += 1
+                tc.delete()
+                tcs = TargetClassification.objects.filter(target = t)
+                tc_dicts = [tc.as_dict() for tc in tcs]
+    logging.info(f'Done: cleaning {dups} duplicate classifications, it took {time.time()- st} sec')
+    return dups
+
+def register_duplicates():
+    '''This method goes through the list of targets and adds them to TargetList objects
+    based on whether they are covered by multiple alerts. It also specially picls out 
+    targets with both ALeRCE and Fink'''
+    logging.info('Start: register duplicates')
+    st = time.time()
+    targets = Target.objects.all()
+    dups, _  = TargetList.objects.get_or_create(name = 'Duplicates')
+    trips, _ = TargetList.objects.get_or_create(name = 'Triplicates')
+    alfin, _ = TargetList.objects.get_or_create(name = 'ALeRCE + Fink')
+
+    dups_len = len(dups.targets.all())
+    trips_len = len(trips.targets.all())
+    alfin_len = len(alfin.targets.all())
+
+    for t in targets:
+        broker_extra = t.targetextra_set.get(key = 'broker')
+        brokers = broker_extra.typed_value('').split(', ')
+        if len(brokers) == 2:
+            dups.targets.add(t)
+        if len(brokers) == 3:
+            trips.targets.add(t)
+        if 'Fink' in brokers and 'ALeRCE' in brokers:
+            alfin.targets.add(t)
+    dups_len2 = len(dups.targets.all())
+    trips_len2 = len(trips.targets.all())
+    alfin_len2 = len(alfin.targets.all())
+    logging.info(f'Done: register duplicates, got {dups_len2 - dups_len} dups, {trips_len2 - trips_len} trips, and {alfin_len2 - alfin_len} alfins')
+    logging.info(f'It took {time.time() - st} sec')
+    logging.info(f'There are now {dups_len2} duplicates, {trips_len2} triplicates, and {alfin_len2} Alfins')
+
+def find_unknowns():
+    '''This method loops through all the targets and finds the ones that do not have classifications or are classified only as unknown'''
+    logging.info('Start: finding unknowns')
+    targets = Target.objects.all()
+    no_classif = 0
+    unks = 0
+    for t in targets:
+        tcs = t.targetclassification_set.all()
+        if len(tcs) == 0:
+            no_classif += 1
+        
+        if len(tcs) == 1 and tcs[0].classification == 'Unknown':
+            unks += 1
+    logging.info(f'Done: there are {unks} unknowns and {no_classif} without any classifications')
+    return unks, no_classif

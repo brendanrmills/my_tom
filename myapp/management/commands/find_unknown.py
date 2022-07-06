@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from tom_targets.models import Target
+from tom_targets.models import Target, TargetList
 from tom_alerts.brokers.mars import MARSBroker
 from tom_antares.antares import ANTARESBroker
 from tom_alerts.brokers.alerce import ALeRCEBroker
@@ -18,64 +18,17 @@ class Command(BaseCommand):
         parser.add_argument('--ztf', help='Download data for a single target')
 
     def handle(self, *args, **options):
-        # targets = list(Target.objects.all())
-        # print(len(targets), ' targets')
-        # tcs = TargetClassification.objects.all()
-        # no_classif = 0
-        # unks = 0
-        # for t in targets:
-        #     tcs = t.targetclassification_set.all()
-        #     if len(tcs) == 0:
-        #         no_classif += 1
-        #     if len(tcs) == 1 and tcs[0].classification == 'Unknown':
-        #         unks += 1
-        #     if len(tcs) > 2:
-        #         print(t.name, t.targetextra_set.get(key = 'broker'))
-
-        # print(no_classif, ' have no classification')
-        # print(unks, ' are unknown')
+        FORMAT = '%(asctime)s %(message)s'
+        logging.basicConfig(format = FORMAT, filename='/home/bmills/bmillsWork/tom_test/mytom/find_unknown.log', level=logging.INFO, force=True)
         
-        # t = Target.objects.get(name = 'ZTF18abmahnn')
-        # print(TargetClassification.objects.filter(target = t))
-        t = Target.objects.get(name = 'ZTF20abvvvze')
-        tcs = TargetClassification.objects.filter(target = t)
-        for tc in tcs:
-            print(tc)
-
-        # total = len(tcs)
-        # unks = 0
-        # classifications = []
-        # counts = []
-        # for tc in tcs:
-        #     if tc.classification == 'Unknown':
-        #         unks +=1
-        #     if not tc.source + ' ' + tc.classification in classifications:
-        #         classifications.append(tc.source+ ' ' + tc.classification)
-        #         counts.append(1)
-        #     else:
-        #         counts[classifications.index(tc.source+ ' ' + tc.classification)] +=1
-        #     if tc.source + ' ' + tc.classification == 'ALeRCE Periodic':
-        #         print(tc.target.name)
-        # print(f'{unks} out of {total} are unknown')
-        # for i in range(len(classifications)):
-        #     print(classifications[i] + ' ' + str(counts[i]))
-    def clean_duplicate_classifs(self):
-        targets = list(Target.objects.all())
-        dups = 0
-        for t in targets:
-            tcs = TargetClassification.objects.filter(target = t)
-            tc_dicts = [tc.as_dict() for tc in tcs]
-            for tc in tcs:
-                if tc_dicts.count(tc.as_dict()) > 1:
-                    print('I found a duplicate classification', tc)
-                    dups += 1
-                    tc.delete()
-                    tcs = TargetClassification.objects.filter(target = t)
-                    tc_dicts = [tc.as_dict() for tc in tcs]
-        return dups
-
+        register_duplicates()
+        clean_duplicate_classifs()
+        find_unknowns()
 
     def count_tcs(self):
+        '''This method goes though all the targets and sees hoe many target classifications it has
+        It prints out a list showing how many classifications a target might have, and how many 
+        targets have that may classifications. '''
         targets = list(Target.objects.all())
         lengths = []
         counts = []
@@ -99,4 +52,19 @@ class Command(BaseCommand):
 
         print(names[-1][0])
         return lengths, counts, names
-        
+    
+    def classification_printout(self):
+        tcs = TargetClassification.objects.all()
+        total = len(tcs)
+        classifications = []
+        counts = []
+        for tc in tcs:
+            text = tc.source + ' ' + tc.classification
+            if not text in classifications:
+                classifications.append(text)
+                counts.append(1)
+            else:
+                counts[classifications.index(text)] +=1
+        for i in range(len(classifications)):
+            print(classifications[i] + ' ' + str(counts[i]))
+        print(f'there are {total} total classifications')
