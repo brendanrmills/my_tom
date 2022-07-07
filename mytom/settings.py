@@ -267,7 +267,8 @@ BROKERS = {
             'hopskotch_username': os.getenv('brendanrmills-0e4a3032', ''),
             'hopskotch_password': os.getenv('FGX8yIFl4MTgMqQJ15k8v3NXNB261Jjg', ''),
             'default_hopskotch_topic': ''
-        }
+        },
+    'Lasair':{'lasair_token': os.getenv('LASAIR_TOKEN', '')}
 }
 
 HARVESTERS = {
