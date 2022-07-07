@@ -157,7 +157,8 @@ def alerce_probs(target, probs):
     if probs:
         for p in probs:
             if p['classifier_version'] =="stamp_classifier_1.0.4":
-                save_target_classification(target, 'ALeRCE*', p['classifier_name'] + '*', p['class_name'] + '*', p['probability'], mjd)
+                pass
+                #save_target_classification(target, 'ALeRCE*', p['classifier_name'] + '*', p['class_name'] + '*', p['probability'], mjd)
             else:
                 save_target_classification(target, 'ALeRCE', p['classifier_name'], p['class_name'], p['probability'], mjd)
     else:
@@ -213,10 +214,12 @@ def register_duplicates():
     dups, _  = TargetList.objects.get_or_create(name = 'Duplicates')
     trips, _ = TargetList.objects.get_or_create(name = 'Triplicates')
     alfin, _ = TargetList.objects.get_or_create(name = 'ALeRCE + Fink')
+    alfinlas, _ = TargetList.objects.get_or_create(name = 'Alerce + Fink + Lasair')
 
     dups_len = len(dups.targets.all())
     trips_len = len(trips.targets.all())
     alfin_len = len(alfin.targets.all())
+    alfinlas_len = len(alfinlas.targets.all())
 
     for t in targets:
         broker_extra = t.targetextra_set.get(key = 'broker')
@@ -227,12 +230,15 @@ def register_duplicates():
             trips.targets.add(t)
         if 'Fink' in brokers and 'ALeRCE' in brokers:
             alfin.targets.add(t)
+        if 'Fink' in brokers and 'ALeRCE' in brokers and 'Lasair' in brokers:
+            alfinlas.targets.add(t)
     dups_len2 = len(dups.targets.all())
     trips_len2 = len(trips.targets.all())
     alfin_len2 = len(alfin.targets.all())
-    logging.info(f'Done: register duplicates, got {dups_len2 - dups_len} dups, {trips_len2 - trips_len} trips, and {alfin_len2 - alfin_len} alfins')
-    logging.info(f'It took {time.time() - st} sec')
-    logging.info(f'There are now {dups_len2} duplicates, {trips_len2} triplicates, and {alfin_len2} Alfins')
+    alfinlas_len2 = len(alfinlas.targets.all())
+    logging.info(f'Done: register duplicates, got {dups_len2 - dups_len} dups, {trips_len2 - trips_len} trips, {alfin_len2 - alfin_len} alfins, and {alfinlas_len2-alfinlas_len} Alfinlas')
+    logging.info(f'    It took {time.time() - st} sec')
+    logging.info(f'    There are now {dups_len2} duplicates, {trips_len2} triplicates, {alfin_len2} Alfins, and {alfinlas_len2} in Alfinlas')
 
 def find_unknowns():
     '''This method loops through all the targets and finds the ones that do not have classifications or are classified only as unknown'''
