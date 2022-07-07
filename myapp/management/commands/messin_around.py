@@ -24,12 +24,15 @@ class Command(BaseCommand):
 
         today = 2459765
         yesterday = 2459764
+        
+        # alerts = self.get_lasair(yesterday, today)
+        # merge_lasair(alerts)
 
         LASAIR_URL = 'https://lasair-ztf.lsst.ac.uk/api'
         query = {
             'limit': 1,
             "token":"1ce34af3a313684e90eb86ccc22565ae33434e0f",
-            'objectIds': 'ZTF18abdphvf',
+            'objectIds': 'ZTF19aaxkgrl',
             'format': 'json',
             
         }
@@ -38,14 +41,19 @@ class Command(BaseCommand):
         response = requests.get(url)
         response.raise_for_status()
         parsed = response.json()
-        # print(json.dumps(parsed, indent = 3))
+        print(json.dumps(parsed, indent = 3))
 
+        return 'Success!'
+
+    def get_lasair(self, mjd__gt, mjd__lt):
+        start_time = time.time()
+        LASAIR_URL = 'https://lasair-ztf.lsst.ac.uk/api'
         query = {
-            'selected': 'objects.objectId',
+            'selected': 'objects.objectId, objects.ramean, objects.decmean, objects.jdmax, sherlock_classifications.classification, sherlock_classifications.classificationReliability',
             "token":"1ce34af3a313684e90eb86ccc22565ae33434e0f",
-            'tables': 'objects',
-            'conditions': f'objects.jdmax<{today} AND objects.jdmax>{yesterday}',
-            'limit': 100,
+            'tables': 'objects, sherlock_classifications',
+            'conditions': f'objects.jdmax>{mjd__gt} AND objects.jdmax<{mjd__lt}',
+            'limit': 5000,
             'offset': 0,
             'format': 'json',
         }
@@ -54,6 +62,7 @@ class Command(BaseCommand):
         response = requests.get(url)
         response.raise_for_status()
         parsed = response.json()
-        print(json.dumps(parsed, indent = 3))
+        lasair_alert_list = list(parsed)
 
-        return 'Success!'
+        logging.info('Lasair took {} sec to gather {} alerts'.format(time.time() - start_time, len(lasair_alert_list)))
+        return lasair_alert_list

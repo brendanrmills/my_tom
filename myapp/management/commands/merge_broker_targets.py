@@ -4,6 +4,7 @@ from tom_alerts.brokers.mars import MARSBroker
 from tom_antares.antares import ANTARESBroker
 from tom_alerts.brokers.alerce import ALeRCEBroker
 from tom_fink.fink import FinkBroker
+from tom_alerts.brokers.lasair import LasairBroker
 from merge_methods import *
 import time, json, logging
 from astropy.time import Time
@@ -45,6 +46,9 @@ class Command(BaseCommand):
         alerce_alert_list = self.get_alerce(mjd__gt, mjd__lt)
         merge_alerce(alerce_alert_list)
 
+        lasair_alert_list = self.get_lasair(mjd__gt, mjd__lt)
+        merge_lasair(lasair_alert_list)
+
         # alert_streams = [mars_alert_list, antares_alert_list, fink_alert_list, alerce_alert_list,]
         #generate printout for total alerts gathered
 
@@ -58,7 +62,7 @@ class Command(BaseCommand):
         #Timing report
         et = time.time()
         # print(round(et - st, 4), 'sec total')
-
+        logging.info(f'There are now {len(Target.objects.all())} targets registered')
         return
 
     def get_mars(self, mjd__gt, mjd__lt):#no idea how to change length of output. might have to do with pagination
@@ -133,7 +137,8 @@ class Command(BaseCommand):
             'radius': '',
             'lastmjd__gt': mjd__gt,
             'lastmjd__lt': mjd__lt,
-            'max_pages':500 #this line supresses a longer output
+            'max_pages':5, #this line supresses a longer output
+            'page_size': 5000
         }
         alerce_alerts = alerce_broker.fetch_alerts(query)
         alerce_alert_list = list(alerce_alerts)
@@ -142,6 +147,15 @@ class Command(BaseCommand):
 
         logging.info('Alerce took {} sec to gather {} alerts'.format(time.time() - t, len(alerce_alert_list)))
         return alerce_alert_list
+    
+    def get_lasair(self, mjd__gt, mjd__lt):
+        start_time = time.time()
+        lasair_broker = LasairBroker()
+        lasair_alerts = lasair_broker.fetch_alerts({'mjd__gt': mjd__gt, 'mjd__lt': mjd__lt, 'max_alerts': 50000})
+        lasair_alert_list = list(lasair_alerts)
+
+        logging.info('Lasair took {} sec to gather {} alerts'.format(time.time() - start_time, len(lasair_alert_list)))
+        return lasair_alert_list
 
     def temp_func(self):
         

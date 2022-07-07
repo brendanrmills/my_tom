@@ -6,9 +6,13 @@ from tom_fink.fink import FinkBroker
 from classifications.models import TargetClassification
 from astropy.time import Time
 import json, requests, logging, time
+from urllib.parse import urlencode
 
 def merge_mars(mars_alert_list):
-    '''This method merges the alert list into the database target list'''
+    '''This method merges the alert list into the database target list
+    It firstts gets_or_creates the target object
+    then it assembles a dictionary of soon-to-be targetextras with proper naming
+    it saves the target extras and the broker tag'''
     st = time.time()
     for alert in mars_alert_list:
         try: #create target
@@ -102,6 +106,27 @@ def merge_alerce(alerce_alert_list):
         
         #print('ALeRCE  Target', alert["oid"], ' created'if created else ' updated!!!')
     logging.info(f'MergeALeRCE took {time.time()-st} sec')
+
+def merge_lasair(lasair_alert_list):
+    st = time.time()
+    for alert in lasair_alert_list:
+        try: #create target
+            created = False
+            target = Target.objects.get(name = alert["objectId"])
+        except:
+            target = Target.objects.create(
+            name=alert.get('objectId'),
+            type='SIDEREAL',
+            ra=alert.get('ramean'),
+            dec=alert.get('decmean'),
+            )
+            created = True
+        save_broker_extra(target, 'Lasair')
+        save_target_classification(target, 'Lasair', '', alert['classification'], alert['classificationReliability'], alert['jdmax'] - 2400000)
+        #there is not target estra data saved for these
+        # print('Lasair  Target', alert["objectId"], ' created'if created else ' updated!!!')
+
+    logging.info(f'MergeLasair took {time.time()-st} sec')
 
 def save_broker_extra(target, broker_name):
     '''This method saves the broker as a target extra and appends the target to the targetlist for that broker'''
