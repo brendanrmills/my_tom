@@ -21,9 +21,10 @@ class Command(BaseCommand):
         FORMAT = '%(asctime)s %(message)s'
         logging.basicConfig(format = FORMAT, filename='/home/bmills/bmillsWork/tom_test/mytom/find_unknown.log', level=logging.INFO, force=True)
         
-        register_duplicates()
-        clean_duplicate_classifs()
-        find_unknowns()
+        # register_duplicates()
+        # clean_duplicate_classifs()
+        # find_unknowns()
+        self.classification_printout()
 
     def count_tcs(self):
         '''This method goes though all the targets and sees hoe many target classifications it has
@@ -67,4 +68,5 @@ class Command(BaseCommand):
                 counts[classifications.index(text)] +=1
         for i in range(len(classifications)):
             print(classifications[i] + ' ' + str(counts[i]))
+        print(len(classifications))
         print(f'there are {total} total classifications')

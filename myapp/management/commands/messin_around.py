@@ -24,28 +24,26 @@ class Command(BaseCommand):
 
         today = 2459765
         yesterday = 2459764
-        
-        # alerts = self.get_lasair(yesterday, today)
-        # merge_lasair(alerts)
 
-        LASAIR_URL = 'https://lasair-ztf.lsst.ac.uk/api'
-        query = {
-            'limit': 1,
-            "token":"1ce34af3a313684e90eb86ccc22565ae33434e0f",
-            'objectIds': 'ZTF19aaxkgrl',
-            'format': 'json',
-            
-        }
-        url = LASAIR_URL + '/objects/?' + urlencode(query)
-        print(url)
-        response = requests.get(url)
-        response.raise_for_status()
-        parsed = response.json()
-        print(json.dumps(parsed, indent = 3))
+        
+
+        # tcs = TargetClassification.objects.all()
+        # print(len(tcs))
+        # for tc in tcs:
+        #     if tc.source == 'ALeRCE*':
+        #         tc.delete()
+
+        # good_ones = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
+        # for t in good_ones:
+        #     print(t.name)
+        #     tcs = t.targetclassification_set.all()
+        #     for tc in tcs:
+        #         print(tc.as_dict())
+
 
         return 'Success!'
 
-    def get_lasair(self, mjd__gt, mjd__lt):
+    def get_lasair_query(self, mjd__gt, mjd__lt):
         start_time = time.time()
         LASAIR_URL = 'https://lasair-ztf.lsst.ac.uk/api'
         query = {

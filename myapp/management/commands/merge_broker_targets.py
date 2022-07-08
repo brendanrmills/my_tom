@@ -42,12 +42,15 @@ class Command(BaseCommand):
         fink_alert_list = self.get_fink(mjd__gt, mjd__lt)
         merge_fink(fink_alert_list)
 
+        # lasair broker
+        lasair_alert_list = self.get_lasair(mjd__gt, mjd__lt)
+        merge_lasair(lasair_alert_list)
+
         #alerce broker
         alerce_alert_list = self.get_alerce(mjd__gt, mjd__lt)
         merge_alerce(alerce_alert_list)
 
-        lasair_alert_list = self.get_lasair(mjd__gt, mjd__lt)
-        merge_lasair(lasair_alert_list)
+
 
         # alert_streams = [mars_alert_list, antares_alert_list, fink_alert_list, alerce_alert_list,]
         #generate printout for total alerts gathered
