@@ -8,7 +8,7 @@ from tom_alerts.brokers.lasair import LasairBroker
 from merge_methods import *
 import time, json, logging
 from astropy.time import Time
-from classifications.models import TargetClassification
+from tom_classifications.models import TargetClassification
 
 class Command(BaseCommand):
 
@@ -24,7 +24,7 @@ class Command(BaseCommand):
         # WATCH OUT!!! this line deletes all targets at the beginning of the script
         # are you sure this is what you want to do?
         # Target.objects.all().delete()
-        mjd__lt = Time.now().mjd -365 #maximum date
+        mjd__lt = Time.now().mjd #maximum date
         mjd__gt = mjd__lt - 1 #minimum date
         
         FORMAT = '%(asctime)s %(message)s'
@@ -49,11 +49,6 @@ class Command(BaseCommand):
         #alerce broker
         alerce_alert_list = self.get_alerce(mjd__gt, mjd__lt)
         merge_alerce(alerce_alert_list)
-
-
-
-        # alert_streams = [mars_alert_list, antares_alert_list, fink_alert_list, alerce_alert_list,]
-        #generate printout for total alerts gathered
 
         # print(len(Target.objects.all()), ' targets registered')
 
@@ -93,7 +88,6 @@ class Command(BaseCommand):
         return antares_alert_list
 
     def get_fink(self, mjd__gt, mjd__lt):
-        # print('Getting Fink alerts')
         st = time.time()
         fink_broker = FinkBroker()
         fink_alert_list_big = []
@@ -101,7 +95,7 @@ class Command(BaseCommand):
         dur = mjd__lt-mjd__gt
         offset = 0
         i = 0
-        while offset < dur:# and len(fink_alert_list_big) < 50: #this line keeps fink from running all 19000, comment out before and
+        while offset < dur:# and len(fink_alert_list_big) < 50: #this line keeps fink from running all 25000, comment out before and
             t = Time(mjd__gt + offset,format = 'mjd')
             window = 3
             if offset + window/24 > dur:
@@ -122,8 +116,6 @@ class Command(BaseCommand):
             for a in fink_alert_list:
                 fink_alert_list_big.append(a)
             i+=1
-        # print(json.dumps(fink_alert_list[0], indent=3))
-        # print(f'Got {len(fink_alert_list_big)} Fink alerts by running {i} queries')
 
         logging.info(f'Fink took {time.time() - st } sec to gather {len(fink_alert_list_big)} alerts')
         return fink_alert_list_big

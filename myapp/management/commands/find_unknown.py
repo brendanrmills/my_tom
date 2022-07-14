@@ -24,7 +24,20 @@ class Command(BaseCommand):
         # register_duplicates()
         # clean_duplicate_classifs()
         # find_unknowns()
+        # t = Target.objects.get(name='ZTF20abncmfk')
+        # tcs = t.targetclassification_set.all()
+        # for tc in tcs:
+        #     print(tc.as_dict())
         self.classification_printout()
+        # for t in TargetList.objects.get(name='ALeRCE').targets.all():
+        #     # get the probabilities
+        #     url = 'https://api.alerce.online/ztf/v1/objects/'+t.name+'/probabilities'
+        #     response = requests.get(url)
+        #     response.raise_for_status()
+        #     probs = response.json()
+        #     logging.info(t.name)
+        #     alerce_probs(t, probs)
+        # logging.info('Done')
 
     def count_tcs(self):
         '''This method goes though all the targets and sees hoe many target classifications it has
@@ -67,6 +80,6 @@ class Command(BaseCommand):
             else:
                 counts[classifications.index(text)] +=1
         for i in range(len(classifications)):
-            print(classifications[i] + ' ' + str(counts[i]))
+            print("'" + classifications[i] + "': " +  "'" + str(counts[i]) + "'")
         print(len(classifications))
         print(f'there are {total} total classifications')

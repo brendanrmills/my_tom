@@ -56,7 +56,7 @@ INSTALLED_APPS = [
     'tom_dataproducts',
     'myapp.apps.MyappConfig',
     'rest_framework.authtoken',
-    'classifications'
+    'tom_classifications',
 ]
 
 

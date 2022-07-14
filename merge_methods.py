@@ -3,7 +3,7 @@ from tom_alerts.brokers.mars import MARSBroker
 from tom_antares.antares import ANTARESBroker
 from tom_alerts.brokers.alerce import ALeRCEBroker
 from tom_fink.fink import FinkBroker
-from classifications.models import TargetClassification
+from tom_classifications.models import TargetClassification
 from astropy.time import Time
 import json, requests, logging, time
 from urllib.parse import urlencode
@@ -74,7 +74,11 @@ def merge_fink(fink_alert_list):
         #deal with fink classification
         classif = target.targetextra_set.get(key = 'fink_v:classification').typed_value('')
         mjd = target.targetextra_set.get(key = 'fink_i:jd').typed_value('number') - 2400000
-        save_target_classification(target, 'Fink', '', classif, 0.0, mjd)
+        save_target_classification(target, 'Fink', '', classif, 1.0, mjd)
+        save_target_classification(target, 'Fink', '', 'mulens', alert['d:mulens'], mjd)
+        save_target_classification(target, 'Fink', '', 'sso', alert['d:roid'], mjd)
+        save_target_classification(target, 'Fink', '', 'KN', alert['d:rf_kn_vs_nonkn'], mjd)
+        save_target_classification(target, 'Fink', '', 'SNIa', alert['d:snn_snia_vs_nonia'], mjd)
 
         # print('Fink    Target', alert["i:objectId"], ' created'if created else ' updated!!!')
     logging.info(f'MergeFink took {time.time()-st} sec')
@@ -156,9 +160,8 @@ def alerce_probs(target, probs):
     mjd = target.targetextra_set.get(key = 'alerce_lastmjd').typed_value('number')
     if probs:
         for p in probs:
-            if p['classifier_version'] =="stamp_classifier_1.0.4":
-                pass
-                #save_target_classification(target, 'ALeRCE*', p['classifier_name'] + '*', p['class_name'] + '*', p['probability'], mjd)
+            if p['classifier_version'] =="stamp_classifier_1.0.4" or p['classifier_version'] =="stamp_classifier_1.0.0":
+                save_target_classification(target, 'ALeRCE', p['classifier_version'], p['class_name'], p['probability'], mjd)
             else:
                 save_target_classification(target, 'ALeRCE', p['classifier_name'], p['class_name'], p['probability'], mjd)
     else:
