@@ -7,7 +7,7 @@ from tom_fink.fink import FinkBroker
 from merge_methods import *
 import time, json, logging, requests
 from astropy.time import Time
-from classifications.models import TargetClassification
+from tom_classifications.models import TargetClassification
 import numpy as np
 
 class Command(BaseCommand):

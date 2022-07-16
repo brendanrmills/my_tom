@@ -75,10 +75,10 @@ def merge_fink(fink_alert_list):
         classif = target.targetextra_set.get(key = 'fink_v:classification').typed_value('')
         mjd = target.targetextra_set.get(key = 'fink_i:jd').typed_value('number') - 2400000
         save_target_classification(target, 'Fink', '', classif, 1.0, mjd)
-        save_target_classification(target, 'Fink', '', 'mulens', alert['d:mulens'], mjd)
-        save_target_classification(target, 'Fink', '', 'sso', alert['d:roid'], mjd)
-        save_target_classification(target, 'Fink', '', 'KN', alert['d:rf_kn_vs_nonkn'], mjd)
-        save_target_classification(target, 'Fink', '', 'SNIa', alert['d:snn_snia_vs_nonia'], mjd)
+        save_target_classification(target, 'Fink', '', 'fink_mulens', alert['d:mulens'], mjd)
+        save_target_classification(target, 'Fink', '', 'fink_sso', alert['d:roid'], mjd)
+        save_target_classification(target, 'Fink', '', 'fink_KN', alert['d:rf_kn_vs_nonkn'], mjd)
+        save_target_classification(target, 'Fink', '', 'fink_SNIa', alert['d:snn_snia_vs_nonia'], mjd)
 
         # print('Fink    Target', alert["i:objectId"], ' created'if created else ' updated!!!')
     logging.info(f'MergeFink took {time.time()-st} sec')
@@ -127,7 +127,7 @@ def merge_lasair(lasair_alert_list):
             created = True
         save_broker_extra(target, 'Lasair')
         save_target_classification(target, 'Lasair', '', alert['classification'], alert['classificationReliability'], alert['jdmax'] - 2400000)
-        #there is not target estra data saved for these
+        target.save(extras = {'lasair_sherlock': alert['classification']})
         # print('Lasair  Target', alert["objectId"], ' created'if created else ' updated!!!')
 
     logging.info(f'MergeLasair took {time.time()-st} sec')
