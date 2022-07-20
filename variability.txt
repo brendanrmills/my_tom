@@ -19,11 +19,11 @@
     "BLL": "Bla",
     
     "SN*": "Transient",
-    "SN": "SN*",
     "SNIa": "SN*",
     "SNIbc": "SN*",
     "SNII": "SN*",
     "SLSN": "SN*",
+    "KN": "SN*",
 
     "**": "V*",
     "El*": "**",
@@ -165,7 +165,7 @@
     "RG*": "*",
     "HS*": "HB*",
     "LM*": "*",
-    "Pl": "Alert"
+    "Pl": "Alert",
     "WD*": "*",
     "PM*": "*",
     "a2*": "CV*",
@@ -183,23 +183,15 @@
     "St*": "As*",
     "MGr": "As*",
 
+    "SSO": "Alert",
+    "ast": "SSO",
+    "MPC": "SSO",
+    "trk": "SSO",
+
     "Other": "Alert",
-    "unk": "Other",
-    "Ambiguous": "Other",
-    "Fail 503": "Other",
-
+    "?": "Other",
+    "abi": "Other",
+    "err": "Other"
 }
-
-"Fink PN?_Candidate": "3"
-"Fink V*?_Candidate": "1"
-
-"Fink Solar System MPC": "72362"
-"Fink Tracklet": "738"
-
-"Fink Solar System candidate": "1592"
-"Fink SN candidate": "2448"
-"Fink Early SN Ia candidate": "51"
-"Fink Microlensing candidate": "32"
-"Fink Kilonova candidate": "2"
 
 

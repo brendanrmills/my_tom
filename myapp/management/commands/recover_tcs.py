@@ -18,16 +18,16 @@ class Command(BaseCommand):
         parser.add_argument('--ztf', help='Download data for a single target')
 
     def handle(self, *args, **options):
-        # self.recover_fink()
+        self.recover_fink()
         # print('Done with Fink')
         # self.recover_alerce()
         # print('Done with Alerce')
-        self.recover_lasair()
+        # self.recover_lasair()
 
         return 'Success!'
     
     def recover_fink(self):
-        targets = TargetList.objects.get(name='Fink').targets.all()
+        targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
         for target in targets:
             tes = target.targetextra_set.all()
             classif = tes.get(key='fink_v:classification').typed_value('')
@@ -40,21 +40,33 @@ class Command(BaseCommand):
             save_target_classification(target, 'Fink', '', 'fink_SNIa', tes.get(key = 'fink_d:snn_snia_vs_nonia').typed_value('number'), mjd)
     
     def recover_alerce(self):
-        targets = TargetList.objects.get(name='ALeRCE').targets.all()
-        for target in targets:
-            url = 'https://api.alerce.online/ztf/v1/objects/'+target.name+'/probabilities'
-            response = requests.get(url)
-            response.raise_for_status()
-            probs = response.json()
-            alerce_probs(target, probs)
-    
+        i = 0
+        try:
+            targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
+            for target in targets:
+                url = 'https://api.alerce.online/ztf/v1/objects/'+target.name+'/probabilities'
+                response = requests.get(url)
+                response.raise_for_status()
+                probs = response.json()
+                alerce_probs(target, probs)
+                i+=1
+        except:
+            pass
+        print(i)
+
     def recover_lasair(self):
-        targets = TargetList.objects.get(name='Lasair').targets.all()
-        lasair_broker = LasairBroker()
-        for target in targets:
-            classif = lasair_broker.fetch_alerts({'objectId': target.name})[0]['sherlock']['classification']
-            classifRel = lasair_broker.fetch_alerts({'objectId': target.name})[0]['sherlock']['classificationReliability']
-            mjd = lasair_broker.fetch_alerts({'objectId': target.name})[0]['candidates'][0]['mjd']
-            save_target_classification(target, 'Lasair', '', classif, classifRel, mjd)
-            target.save(extras={'lasair_sherlock': classif})
+        i = 0
+        try:
+            lasair_broker = LasairBroker()
+            targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
+            for target in targets:
+                classif = lasair_broker.fetch_alerts({'objectId': target.name})[0]['sherlock']['classification']
+                classifRel = lasair_broker.fetch_alerts({'objectId': target.name})[0]['sherlock']['classificationReliability']
+                mjd = lasair_broker.fetch_alerts({'objectId': target.name})[0]['candidates'][0]['mjd']
+                save_target_classification(target, 'Lasair', '', classif, classifRel, mjd)
+                target.save(extras={'lasair_sherlock': classif})
+                i+=1
+        except:
+            pass
+        print(i)
 

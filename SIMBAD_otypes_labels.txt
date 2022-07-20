@@ -197,6 +197,5 @@
 | UX?   | ULX?                 | ULX_Candidate
 | Pl?   | Planet?              | Planet_Candidate
 | AG?   | AGN_Candidate        | AGN_Candidate
-| PN?	| Fink PN?_Candidate| 
-| V*?	| Fink V*?_Candidate| 
-
+| PN?	| Fink PN?_Candidate | Fink PN?_Candidate
+| V*?	| Fink V*?_Candidate | Fink V*?_Candidate
