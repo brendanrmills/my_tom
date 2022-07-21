@@ -29,14 +29,16 @@ class Command(BaseCommand):
         today = 59765
         yesterday = 59764
         targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
-        i=0
-        j = 0
-        for t in targets:
-            if len(t.targetclassification_set.all()) > 10:
-                i+=1
-            if len(t.targetclassification_set.all()) > 12:
-                j+=1
-        print(i,j)
+        # i=0
+        # j = 0
+        # for t in targets:
+        #     if len(t.targetclassification_set.all()) > 10:
+        #         i+=1
+        #     if len(t.targetclassification_set.all()) > 12:
+        #         j+=1
+        # print(i,j)
+
+        register_lists()
         # targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
         # i = 0
         # for t in targets:

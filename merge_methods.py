@@ -207,41 +207,41 @@ def clean_duplicate_classifs():
     logging.info(f'Done: cleaning {dups} duplicate classifications, it took {time.time()- st} sec')
     return dups
 
-def register_duplicates():
+def register_lists():
     '''This method goes through the list of targets and adds them to TargetList objects
     based on whether they are covered by multiple alerts. It also specially picls out 
     targets with both ALeRCE and Fink'''
     logging.info('Start: register duplicates')
     st = time.time()
     targets = Target.objects.all()
-    dups, _  = TargetList.objects.get_or_create(name = 'Duplicates')
-    trips, _ = TargetList.objects.get_or_create(name = 'Triplicates')
+    alerce, _ = TargetList.objects.get_or_create(name = 'ALeRCE')
+    fink, _ = TargetList.objects.get_or_create(name = 'Fink')
+    lasair, _ = TargetList.objects.get_or_create(name = 'Lasair')
     alfin, _ = TargetList.objects.get_or_create(name = 'ALeRCE + Fink')
+    lasfin, _ = TargetList.objects.get_or_create(name = 'Lasair + Fink')
+    allas, _ = TargetList.objects.get_or_create(name = 'ALeRCE + Lasair')
     alfinlas, _ = TargetList.objects.get_or_create(name = 'Alerce + Fink + Lasair')
-
-    dups_len = len(dups.targets.all())
-    trips_len = len(trips.targets.all())
-    alfin_len = len(alfin.targets.all())
-    alfinlas_len = len(alfinlas.targets.all())
 
     for t in targets:
         broker_extra = t.targetextra_set.get(key = 'broker')
         brokers = broker_extra.typed_value('').split(', ')
-        if len(brokers) == 2:
-            dups.targets.add(t)
-        if len(brokers) == 3:
-            trips.targets.add(t)
+        if 'Fink' in brokers:
+            fink.targets.add(t)
+        if 'ALeRCE' in brokers:
+            alerce.targets.add(t)
+        if 'Lasair' in brokers:
+            lasair.targets.add(t)
         if 'Fink' in brokers and 'ALeRCE' in brokers:
             alfin.targets.add(t)
+        if 'Lasair' in brokers and 'Fink' in brokers:
+            lasfin.targets.add(t)
+        if 'ALeRCE' in brokers and 'Lasair' in brokers:
+            allas.targets.add(t)            
         if 'Fink' in brokers and 'ALeRCE' in brokers and 'Lasair' in brokers:
             alfinlas.targets.add(t)
-    dups_len2 = len(dups.targets.all())
-    trips_len2 = len(trips.targets.all())
-    alfin_len2 = len(alfin.targets.all())
-    alfinlas_len2 = len(alfinlas.targets.all())
-    logging.info(f'Done: register duplicates, got {dups_len2 - dups_len} dups, {trips_len2 - trips_len} trips, {alfin_len2 - alfin_len} alfins, and {alfinlas_len2-alfinlas_len} Alfinlas')
+
+
     logging.info(f'    It took {time.time() - st} sec')
-    logging.info(f'    There are now {dups_len2} duplicates, {trips_len2} triplicates, {alfin_len2} Alfins, and {alfinlas_len2} in Alfinlas')
 
 def find_unknowns():
     '''This method loops through all the targets and finds the ones that do not have classifications or are classified only as unknown'''

@@ -9,6 +9,8 @@ from merge_methods import *
 import time, json, logging, requests
 from astropy.time import Time
 from tom_classifications.models import TargetClassification
+from urllib.parse import urlencode
+LASAIR_URL = 'https://lasair-ztf.lsst.ac.uk/api'
 
 class Command(BaseCommand):
 
@@ -18,11 +20,13 @@ class Command(BaseCommand):
         parser.add_argument('--ztf', help='Download data for a single target')
 
     def handle(self, *args, **options):
-        self.recover_fink()
+        # self.recover_fink()
         # print('Done with Fink')
-        # self.recover_alerce()
-        # print('Done with Alerce')
-        # self.recover_lasair()
+        self.recover_lasair()
+        print('done with Lasair')
+        self.recover_alerce()
+        print('Done with Alerce')
+
 
         return 'Success!'
     
@@ -44,29 +48,51 @@ class Command(BaseCommand):
         try:
             targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
             for target in targets:
-                url = 'https://api.alerce.online/ztf/v1/objects/'+target.name+'/probabilities'
-                response = requests.get(url)
-                response.raise_for_status()
-                probs = response.json()
-                alerce_probs(target, probs)
-                i+=1
+                if not target.targetclassification_set.filter(source='Lasair').exists():
+                    url = 'https://api.alerce.online/ztf/v1/objects/'+target.name+'/probabilities'
+                    response = requests.get(url)
+                    response.raise_for_status()
+                    probs = response.json()
+                    alerce_probs(target, probs)
+                    i+=1
         except:
             pass
         print(i)
 
     def recover_lasair(self):
         i = 0
-        try:
-            lasair_broker = LasairBroker()
-            targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
-            for target in targets:
-                classif = lasair_broker.fetch_alerts({'objectId': target.name})[0]['sherlock']['classification']
-                classifRel = lasair_broker.fetch_alerts({'objectId': target.name})[0]['sherlock']['classificationReliability']
-                mjd = lasair_broker.fetch_alerts({'objectId': target.name})[0]['candidates'][0]['mjd']
-                save_target_classification(target, 'Lasair', '', classif, classifRel, mjd)
-                target.save(extras={'lasair_sherlock': classif})
-                i+=1
-        except:
-            pass
+        lasair_broker = LasairBroker()
+        targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
+        for target in targets:
+            if not target.targetclassification_set.filter(source='Lasair').exists():
+                try:
+                    # out = lasair_broker.fetch_alerts({'objectId': target.name})
+                    # classif = out[0]['sherlock']['classification']
+                    # classifRel = out[0]['sherlock']['classificationReliability']
+                    # mjd = out[0]['candidates'][0]['mjd']
+                    # save_target_classification(target, 'Lasair', '', classif, classifRel, mjd)
+                    # target.save(extras={'lasair_sherlock': classif})
+                    
+
+                    query = {
+                        'selected': 'objects.objectId, objects.ramean, objects.decmean, objects.jdmax, sherlock_classifications.classification, sherlock_classifications.classificationReliability',
+                        "token":"1ce34af3a313684e90eb86ccc22565ae33434e0f",
+                        'tables': 'objects, sherlock_classifications',
+                        'conditions': f'objects.objectId LIKE "{target.name}"',
+                        'limit': 1,
+                        'offset': 0,
+                        'format': 'json',
+                    }
+                    url = LASAIR_URL + '/query/?' + urlencode(query)
+                    response = requests.get(url)
+                    response.raise_for_status()
+                    parsed = response.json()[0]
+                    save_target_classification(target, 'Lasair', '', parsed['classification'], parsed['classificationReliability'], parsed['jdmax']-2400000)
+                    target.save(extras={'lasair_sherlock': parsed['classification']})
+                    i+=1
+                except Exception as e:
+                    print(e)
+                    pass
+
         print(i)
 
