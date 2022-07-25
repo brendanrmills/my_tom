@@ -214,9 +214,6 @@ def register_lists():
     logging.info('Start: register duplicates')
     st = time.time()
     targets = Target.objects.all()
-    alerce, _ = TargetList.objects.get_or_create(name = 'ALeRCE')
-    fink, _ = TargetList.objects.get_or_create(name = 'Fink')
-    lasair, _ = TargetList.objects.get_or_create(name = 'Lasair')
     alfin, _ = TargetList.objects.get_or_create(name = 'ALeRCE + Fink')
     lasfin, _ = TargetList.objects.get_or_create(name = 'Lasair + Fink')
     allas, _ = TargetList.objects.get_or_create(name = 'ALeRCE + Lasair')
@@ -225,12 +222,6 @@ def register_lists():
     for t in targets:
         broker_extra = t.targetextra_set.get(key = 'broker')
         brokers = broker_extra.typed_value('').split(', ')
-        if 'Fink' in brokers:
-            fink.targets.add(t)
-        if 'ALeRCE' in brokers:
-            alerce.targets.add(t)
-        if 'Lasair' in brokers:
-            lasair.targets.add(t)
         if 'Fink' in brokers and 'ALeRCE' in brokers:
             alfin.targets.add(t)
         if 'Lasair' in brokers and 'Fink' in brokers:
@@ -258,3 +249,24 @@ def find_unknowns():
             unks += 1
     logging.info(f'Done: there are {unks} unknowns and {no_classif} without any classifications')
     return unks, no_classif
+
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+    # Print New Line on Complete
+    if iteration == total: 
+        print()
