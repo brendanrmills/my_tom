@@ -29,36 +29,42 @@ class Command(BaseCommand):
         today = 59765
         yesterday = 59764
         targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
-        # i=0
-        # j = 0
-        # for t in targets:
-        #     if len(t.targetclassification_set.all()) > 10:
-        #         i+=1
-        #     if len(t.targetclassification_set.all()) > 12:
-        #         j+=1
-        # print(i,j)
 
-        register_lists()
-        # targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
-        # i = 0
-        # for t in targets:
-        #     if len(t.targetclassification_set.all()) >8 and i<20:
-        #         print(t.name)
-        #         i+=1
-
-        # # get the probabilities
-        # url = 'https://api.alerce.online/ztf/v1/objects/'+t.name+'/probabilities'
-        # response = requests.get(url)
-        # response.raise_for_status()
-        # probs = response.json()
-        # logging.info(t.name)
-        # alerce_probs(t, probs)
-        # print(probs)
- 
-
+        broker_pairs=['Alerce + Fink', 'Lasair + Fink', 'ALeRCE + Lasair']
+        alfin_len = 85863
+        lasfin_len = 84427
+        allas_len = 53866
+        fig = go.Figure(data=[
+            go.Bar(name='Agree', x=broker_pairs, y=[42598/alfin_len, 36817/lasfin_len, 44658/allas_len], marker_color='lightgreen'),
+            go.Bar(name='Disagree', x=broker_pairs, y=[43265/alfin_len, 47548/lasfin_len, 6706/allas_len], marker_color='tomato')
+        ])
+        # Change the bar mode
+        fig.update_layout(barmode='group', title_text='Broker Agreement',yaxis_title='Decimal Agreement')
+        fig.show()
 
         return 'Success!'
 
+    # Print iterations progress
+    def printProgressBar (self, iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+        """
+        Call in a loop to create terminal progress bar
+        @params:
+            iteration   - Required  : current iteration (Int)
+            total       - Required  : total iterations (Int)
+            prefix      - Optional  : prefix string (Str)
+            suffix      - Optional  : suffix string (Str)
+            decimals    - Optional  : positive number of decimals in percent complete (Int)
+            length      - Optional  : character length of bar (Int)
+            fill        - Optional  : bar fill character (Str)
+            printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+        """
+        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+        filledLength = int(length * iteration // total)
+        bar = fill * filledLength + '-' * (length - filledLength)
+        print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+        # Print New Line on Complete
+        if iteration == total: 
+            print()
 
     def get_fink(self, mjd__gt, mjd__lt):
         st = time.time()

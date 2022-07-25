@@ -1,7 +1,7 @@
 {
-    "Transient": "Alert",
-    "V*": "Alert",
-    "G": "Alert",
+    "Transient": "~Alert",
+    "V*": "~Alert",
+    "G": "~Alert",
 
     "LSB": "G",
     "bCG": "G",
@@ -73,13 +73,13 @@
     "BY*": "Ro*",
     "BD*": "Ro*",
 
-    "ISM": "Alert",
+    "ISM": "~Alert",
     "PN": "ISM",
     "HII": "ISM",
     "sh": "ISM",
     "cor": "ISM",
 
-    "spec": "Alert",
+    "spec": "~Alert",
     "Rad": "spec",
     "mR": "Rad",
     "cm": "Rad",
@@ -101,7 +101,7 @@
     "gam": "spec",
     "gB": "gam",
 
-    "GG": "Alert",
+    "GG": "~Alert",
     "GiG": "GG",
     "ClG": "GG",
     "PoG": "GG",
@@ -115,7 +115,7 @@
     "SCG": "GG",
     "IG": "GG",
 
-    "grv": "Alert",
+    "grv": "~Alert",
     "Lev": "grv",
     "gLS": "grv",
     "gLe": "gLS",
@@ -123,7 +123,7 @@
     "LeG": "LeI",
     "LeQ": "LeI",
     
-    "*": "Alert",
+    "*": "~Alert",
 
     "Pl?": "Pl",
     "PN?": "PN",
@@ -154,6 +154,7 @@
     "Be?": "Be*",
     "WR?": "WR*",
     "s?r": "s*r",
+    "s?b": "s*b",
     "Sy?": "Sy*",
     "Ce?": "Ce*",
 
@@ -165,7 +166,7 @@
     "RG*": "*",
     "HS*": "HB*",
     "LM*": "*",
-    "Pl": "Alert",
+    "Pl": "~Alert",
     "WD*": "*",
     "PM*": "*",
     "a2*": "CV*",
@@ -175,20 +176,20 @@
     "Ir*": "V*",
     "RNe": "ISM",
     
-    "***": "Alert",
+    "***": "~Alert",
     "Cl*": "***",
-    "GlG": "Cl*",
+    "GlC": "Cl*",
     "OpC": "Cl*",
     "As*": "***",
     "St*": "As*",
     "MGr": "As*",
 
-    "SSO": "Alert",
+    "SSO": "~Alert",
     "ast": "SSO",
     "MPC": "SSO",
     "trk": "SSO",
 
-    "Other": "Alert",
+    "Other": "~Alert",
     "?": "Other",
     "abi": "Other",
     "err": "Other"
