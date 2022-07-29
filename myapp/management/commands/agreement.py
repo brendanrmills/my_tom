@@ -89,9 +89,9 @@ class Command(BaseCommand):
                 allas_agree += 1
             else:
                 allas_disag += 1
-            self.printProgressBar(j + 1, allas_len, prefix = 'Alerce + Lasair:', suffix = 'Complete', length = 50)
+            printProgressBar(j + 1, allas_len, prefix = 'Alerce + Lasair:', suffix = 'Complete', length = 50)
             
-        print('allas', allas_agree, allas_disag, skip)
+        print('allas', allas_agree, allas_disag, allas_unk, skip)
 
         lasfin_agree = 0
         lasfin_disag = 0
@@ -120,9 +120,9 @@ class Command(BaseCommand):
                 lasfin_agree += 1
             else:
                 lasfin_disag += 1
-            self.printProgressBar(j + 1, lasfin_len, prefix = 'Lasair + Fink:', suffix = 'Complete', length = 50)
+            printProgressBar(j + 1, lasfin_len, prefix = 'Lasair + Fink:', suffix = 'Complete', length = 50)
             
-        print('lasfin', lasfin_agree, lasfin_disag, skip)
+        print('lasfin', lasfin_agree, lasfin_disag, lasfin_unk, skip)
 
         alfin_agree = 0
         alfin_disag = 0
@@ -171,39 +171,25 @@ class Command(BaseCommand):
                 alfin_agree += 1
             else:
                 alfin_disag += 1
-            self.printProgressBar(j + 1, alfin_len, prefix = 'Alerce + Fink:', suffix = 'Complete', length = 50)
-        print('alfin', alfin_agree, alfin_disag, skip)
+            printProgressBar(j + 1, alfin_len, prefix = 'Alerce + Fink:', suffix = 'Complete', length = 50)
+        print('alfin', alfin_agree, alfin_disag, alfin_unk, skip)
 
         broker_pairs=['Alerce + Fink', 'Lasair + Fink', 'ALeRCE + Lasair']
 
+        # fig = go.Figure(data=[
+        #     go.Bar(name='Agree', x=broker_pairs, y=[alfin_agree/alfin_len, lasfin_agree/lasfin_len, allas_agree/allas_len], marker_color='lightgreen'),
+        #     go.Bar(name='Disagree', x=broker_pairs, y=[alfin_disag/alfin_len, lasfin_disag/lasfin_len, allas_disag/allas_len], marker_color='tomato'),
+        #     go.Bar(name='Unknown/Bogus', x=broker_pairs, y=[alfin_unk/alfin_len, lasfin_unk/lasfin_len, allas_unk/allas_len], marker_color='lightgray')
+        # ])
         fig = go.Figure(data=[
-            go.Bar(name='Agree', x=broker_pairs, y=[alfin_agree/alfin_len, lasfin_agree/lasfin_len, allas_agree/allas_len], marker_color='lightgreen'),
-            go.Bar(name='Disagree', x=broker_pairs, y=[alfin_disag/alfin_len, lasfin_disag/lasfin_len, allas_disag/allas_len], marker_color='tomato'),
-            go.Bar(name='Unknown/Bogus', x=broker_pairs, y=[alfin_unk/alfin_len, lasfin_unk/lasfin_len, allas_unk/allas_len], marker_color='lightgray')
+            go.Bar(name='Agree', x=broker_pairs, y=[alfin_agree, lasfin_agree, allas_agree], marker_color='lightgreen'),
+            go.Bar(name='Disagree', x=broker_pairs, y=[alfin_disag, lasfin_disag, allas_disag], marker_color='tomato'),
+            go.Bar(name='Unknown/Bogus', x=broker_pairs, y=[alfin_unk, lasfin_unk, allas_unk], marker_color='lightgray')
         ])
         # Change the bar mode
-        fig.update_layout(barmode='stack', title_text='Broker Agreement',yaxis_title='Decimal Agreement')
+        fig.update_layout(barmode='stack', title_text='Broker Agreement',yaxis_title='Classification Agreement')
         fig.show()
 
-    def printProgressBar (self, iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-        """
-        Call in a loop to create terminal progress bar
-        @params:
-            iteration   - Required  : current iteration (Int)
-            total       - Required  : total iterations (Int)
-            prefix      - Optional  : prefix string (Str)
-            suffix      - Optional  : suffix string (Str)
-            decimals    - Optional  : positive number of decimals in percent complete (Int)
-            length      - Optional  : character length of bar (Int)
-            fill        - Optional  : bar fill character (Str)
-            printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-        """
-        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-        filledLength = int(length * iteration // total)
-        bar = fill * filledLength + '-' * (length - filledLength)
-        print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-        # Print New Line on Complete
-        if iteration == total: 
-            print()
+
 
 

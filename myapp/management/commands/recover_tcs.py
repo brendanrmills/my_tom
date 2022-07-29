@@ -37,7 +37,7 @@ class Command(BaseCommand):
         #     print(num_tcs[i] , counts[i])
         # self.recover_fink()
         # print('Done with Fink')
-        self.recover_lasair2()
+        self.recover_lasair()
         # print('done with Lasair')
         # self.recover_alerce()
         # self.recover_alerce2()

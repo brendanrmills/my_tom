@@ -14,6 +14,12 @@ from urllib.parse import urlencode
 from plotly import offline
 from plotly.subplots import make_subplots
 from plotly import graph_objs as go
+import webbrowser
+import numpy as np
+import pandas as pd
+from os import path
+from django.conf import settings
+import matplotlib.pyplot as plt
 
 class Command(BaseCommand):
 
@@ -28,21 +34,64 @@ class Command(BaseCommand):
 
         today = 59765
         yesterday = 59764
-        targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()
+        self.plot_lc('ZTF17aadevsj', 'detections.csv', period=0.143436278964915)
 
-        broker_pairs=['Alerce + Fink', 'Lasair + Fink', 'ALeRCE + Lasair']
-        alfin_len = 85863
-        lasfin_len = 84427
-        allas_len = 53866
-        fig = go.Figure(data=[
-            go.Bar(name='Agree', x=broker_pairs, y=[42598/alfin_len, 36817/lasfin_len, 44658/allas_len], marker_color='lightgreen'),
-            go.Bar(name='Disagree', x=broker_pairs, y=[43265/alfin_len, 47548/lasfin_len, 6706/allas_len], marker_color='tomato')
-        ])
-        # Change the bar mode
-        fig.update_layout(barmode='group', title_text='Broker Agreement',yaxis_title='Decimal Agreement')
-        fig.show()
+
+        # webbrowser.open("",new=1)
+        # length = 2000
+        # offset = 190
+        # targets = TargetList.objects.get(name='Alerce + Fink + Lasair').targets.all()[offset:offset+length]
+        # for t in targets:
+        #     fink_choice = t.targetclassification_set.filter(source='Fink').order_by('mjd', '-probability')[0].classification
+
+        #     if fink_choice == 'Unknown' or fink_choice == 'RRLyr' or 'EB*' in fink_choice or 'LP*' in fink_choice:
+        #         continue
+        #     if 'SN' in t.targetextra_set.get(key='fink_v:classification').typed_value(''):
+        #         print(fink_choice)
+        #         webbrowser.open(f"http://127.0.0.1:8000/targets/name/{t.name}")
+
+
+
+        # tcs = TargetClassification.objects.filter(source='Fink')
+        # i=0
+        # l = len(tcs)
+        # for j, tc in enumerate(tcs):
+        #     if tc.classification == 'Unknown':
+        #         i+=1
+        #     printProgressBar(j+1, l, prefix = 'Fink TCs:', suffix = 'Complete', length = 50)
+        # print(l, i)
+        # broker_pairs=['Alerce + Fink', 'Lasair + Fink', 'ALeRCE + Lasair']
+        # alfin_len = 85863
+        # lasfin_len = 84427
+        # allas_len = 53866
+        # fig = go.Figure(data=[
+        #     go.Bar(name='Agree', x=broker_pairs, y=[42598/alfin_len, 36817/lasfin_len, 44658/allas_len], marker_color='lightgreen'),
+        #     go.Bar(name='Disagree', x=broker_pairs, y=[43265/alfin_len, 47548/lasfin_len, 6706/allas_len], marker_color='tomato')
+        # ])
+        # # Change the bar mode
+        # fig.update_layout(barmode='group', title_text='Broker Agreement',yaxis_title='Decimal Agreement')
+        # fig.show()
 
         return 'Success!'
+    def plot_lc(self, name, file_name, period=None):
+        df = pd.read_csv(path.join(settings.MEDIA_ROOT,file_name))
+        if period:
+            mod_series = df['mjd'] % (2*period)
+            df['mjd'] = mod_series
+        df['fid'] = np.where(df['fid']==1,'g','r')
+
+        fig, ax = plt.subplots(figsize=(10,5))
+        ax.scatter(df['mjd'], df['magpsf_corr'],c=df['fid'], s=8)
+        ax.invert_yaxis()
+        if period:
+            ax.set_xlabel('Days mod Period')
+        else:
+            ax.set_xlabel('MJD')
+        ax.set_ylabel('Corrected Magnitude')
+        if period:
+            ax.set_title(f'Period of {period} days')
+        fig.suptitle(name)
+        plt.show()
 
     # Print iterations progress
     def printProgressBar (self, iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
@@ -66,35 +115,4 @@ class Command(BaseCommand):
         if iteration == total: 
             print()
 
-    def get_fink(self, mjd__gt, mjd__lt):
-        st = time.time()
-        fink_broker = FinkBroker()
-        fink_alert_list_big = []
 
-        dur = mjd__lt-mjd__gt
-        offset = 0
-        i = 0
-        while offset < dur:# and len(fink_alert_list_big) < 50: #this line keeps fink from running all 25000, comment out before and
-            t = Time(mjd__gt + offset,format = 'mjd')
-            window = 3
-            if offset + window/24 > dur:
-                window = dur - offset
-            query = {
-                'objectId': '', 
-                'conesearch': '', 
-                'datesearch': f'{t.iso}, {window*60}',
-                'classsearch': '', 
-                'classsearchdate': '', 
-                'ssosearch': ''
-            }
-            offset += 3/24
-
-            fink_alerts = fink_broker.fetch_alerts(query)
-
-            fink_alert_list = list(fink_alerts)
-            for a in fink_alert_list:
-                fink_alert_list_big.append(a)
-            i+=1
-
-        logging.info(f'Fink took {time.time() - st } sec to gather {len(fink_alert_list_big)} alerts')
-        return fink_alert_list_big

@@ -40,15 +40,15 @@ class Command(BaseCommand):
 
         # fink broker
         fink_alert_list = self.get_fink(mjd__gt, mjd__lt)
-        merge_fink(fink_alert_list)
+        # merge_fink(fink_alert_list)
 
-        # lasair broker
-        lasair_alert_list = self.get_lasair(mjd__gt, mjd__lt)
-        merge_lasair(lasair_alert_list)
+        # # lasair broker
+        # lasair_alert_list = self.get_lasair(mjd__gt, mjd__lt)
+        # merge_lasair(lasair_alert_list)
 
-        #alerce broker
-        alerce_alert_list = self.get_alerce(mjd__gt, mjd__lt)
-        merge_alerce(alerce_alert_list)
+        # #alerce broker
+        # alerce_alert_list = self.get_alerce(mjd__gt, mjd__lt)
+        # merge_alerce(alerce_alert_list)
 
         # print(len(Target.objects.all()), ' targets registered')
 
