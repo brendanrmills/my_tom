@@ -194,8 +194,9 @@ def clean_duplicate_classifs():
     logging.info('Start: cleaning duplicate classifications')
     st= time.time()
     targets = list(Target.objects.all())
+    l = len(targets)
     dups = 0
-    for t in targets:
+    for i, t in enumerate(targets):
         tcs = TargetClassification.objects.filter(target = t)
         tc_dicts = [tc.as_dict() for tc in tcs]
         for tc in tcs:
@@ -204,22 +205,23 @@ def clean_duplicate_classifs():
                 tc.delete()
                 tcs = TargetClassification.objects.filter(target = t)
                 tc_dicts = [tc.as_dict() for tc in tcs]
+        printProgressBar(i+1, l, prefix = 'Cleaning Duplicate Classifications')
     logging.info(f'Done: cleaning {dups} duplicate classifications, it took {time.time()- st} sec')
     return dups
 
-def register_lists():
+def register_broker_lists():
     '''This method goes through the list of targets and adds them to TargetList objects
-    based on whether they are covered by multiple alerts. It also specially picls out 
-    targets with both ALeRCE and Fink'''
+    based on what combination of classifiying brokers cover the target.'''
     logging.info('Start: register duplicates')
     st = time.time()
     targets = Target.objects.all()
+    l = len(targets)
     alfin, _ = TargetList.objects.get_or_create(name = 'ALeRCE + Fink')
     lasfin, _ = TargetList.objects.get_or_create(name = 'Lasair + Fink')
     allas, _ = TargetList.objects.get_or_create(name = 'ALeRCE + Lasair')
     alfinlas, _ = TargetList.objects.get_or_create(name = 'Alerce + Fink + Lasair')
 
-    for t in targets:
+    for i, t in enumerate(targets):
         broker_extra = t.targetextra_set.get(key = 'broker')
         brokers = broker_extra.typed_value('').split(', ')
         if 'Fink' in brokers and 'ALeRCE' in brokers:
@@ -230,8 +232,28 @@ def register_lists():
             allas.targets.add(t)            
         if 'Fink' in brokers and 'ALeRCE' in brokers and 'Lasair' in brokers:
             alfinlas.targets.add(t)
+        printProgressBar(i+1, l, prefix = 'Register Broker Lists')
+    logging.info(f'    It took {time.time() - st} sec')
 
+def register_duplicate_lists():
+    '''This method goes through the list of targets and adds them to TargetList objects
+    based on whether they are covered by multiple brokers'''
+    logging.info('Start: register duplicates')
+    st = time.time()
+    targets = Target.objects.all()
+    l = len(targets)
+    dups, _ = TargetList.objects.get_or_create(name = 'Duplicates')
+    trips, _ = TargetList.objects.get_or_create(name = 'Triplicates')
 
+    for i, t in enumerate(targets):
+        broker_extra = t.targetextra_set.get(key = 'broker')
+        num_brokers = len(broker_extra.typed_value('').split(', '))
+        if num_brokers == 2:
+            dups.targets.add(t)
+        elif num_brokers == 3:
+            trips.targets.add(t)
+
+        printProgressBar(i+1, l, prefix = 'Register Duplicare Lists')
     logging.info(f'    It took {time.time() - st} sec')
 
 def find_unknowns():
@@ -250,7 +272,7 @@ def find_unknowns():
     logging.info(f'Done: there are {unks} unknowns and {no_classif} without any classifications')
     return unks, no_classif
 
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+def printProgressBar(iteration, total, prefix = '', suffix = 'Complete', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
     """
     Call in a loop to create terminal progress bar
     @params:
