@@ -4,9 +4,7 @@ from tom_antares.antares import ANTARESBroker
 from tom_alerts.brokers.alerce import ALeRCEBroker
 from tom_fink.fink import FinkBroker
 from tom_classifications.models import TargetClassification
-from astropy.time import Time
-import json, requests, logging, time
-from urllib.parse import urlencode
+import requests, logging, time
 
 def merge_mars(mars_alert_list):
     '''This method merges the alert list into the database target list

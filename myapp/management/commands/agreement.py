@@ -19,7 +19,7 @@ from django.conf import settings
 
 class Command(BaseCommand):
 
-    help = 'This is a playground function so I can quickly test things out'
+    help = 'This command runs over all the targets in duplicate lists of classifying brokers, and for each one, using the heirarchy, decides if the brokers agree or not using the '
     
     def add_arguments(self, parser):
         parser.add_argument('--ztf', help='Download data for a single target')

@@ -1,43 +1,23 @@
 from django.core.management.base import BaseCommand
-from tom_targets.models import Target, TargetList
-from tom_alerts.brokers.mars import MARSBroker
-from tom_antares.antares import ANTARESBroker
-from tom_alerts.brokers.alerce import ALeRCEBroker
-from tom_fink.fink import FinkBroker
-from merge_methods import *
-import time, json, logging, requests
-from astropy.time import Time
+from tom_targets.models import Target
+import logging
 from tom_classifications.models import TargetClassification
 import numpy as np
 
 class Command(BaseCommand):
 
-    help = 'This is a playground function so I can quickly test things out'
+    help = 'This command generates the unique classification codes of the target classification objects in the database. Make sure these are represented in the broker codes dictionaries'
 
     def add_arguments(self, parser):
         parser.add_argument('--ztf', help='Download data for a single target')
 
     def handle(self, *args, **options):
         FORMAT = '%(asctime)s %(message)s'
+        print('test')
         logging.basicConfig(format = FORMAT, filename='/home/bmills/bmillsWork/tom_test/mytom/find_unknown.log', level=logging.INFO, force=True)
         
-        # register_duplicates()
-        # clean_duplicate_classifs()
-        # find_unknowns()
-        # t = Target.objects.get(name='ZTF20abncmfk')
-        # tcs = t.targetclassification_set.all()
-        # for tc in tcs:
-        #     print(tc.as_dict())
         self.classification_printout()
-        # for t in TargetList.objects.get(name='ALeRCE').targets.all():
-        #     # get the probabilities
-        #     url = 'https://api.alerce.online/ztf/v1/objects/'+t.name+'/probabilities'
-        #     response = requests.get(url)
-        #     response.raise_for_status()
-        #     probs = response.json()
-        #     logging.info(t.name)
-        #     alerce_probs(t, probs)
-        # logging.info('Done')
+
 
     def count_tcs(self):
         '''This method goes though all the targets and sees hoe many target classifications it has
@@ -68,6 +48,8 @@ class Command(BaseCommand):
         return lengths, counts, names
     
     def classification_printout(self):
+        '''This method goes through all target classifications and generates a printout with the unique classifications and how many appear in the database
+        also it is formatted like a dictionary in case you need to copy and paste it somewhere.'''
         tcs = TargetClassification.objects.all()
         total = len(tcs)
         classifications = []

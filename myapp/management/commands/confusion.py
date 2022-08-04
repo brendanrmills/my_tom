@@ -1,36 +1,29 @@
-from locale import normalize
 from django.core.management.base import BaseCommand
-from tom_targets.models import Target, TargetList
-from tom_alerts.brokers.mars import MARSBroker
-from tom_antares.antares import ANTARESBroker
-from tom_alerts.brokers.alerce import ALeRCEBroker
-from tom_fink.fink import FinkBroker
-from tom_alerts.brokers.lasair import LasairBroker
-from merge_methods import *
-import time, json, logging, requests
-from astropy.time import Time
-from tom_classifications.models import TargetClassification
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from tom_targets.models import TargetList
+import json
 import matplotlib.pyplot as plt
 import matplotlib
 import pandas as pd
 import numpy as np
+from os import path
+from django.conf import settings
 
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        with open('/home/bmills/bmillsWork/tom_test/mytom/broker_codes.txt') as json_file:#this loads the parentage dictionary that I made
+        with open(path.join(settings.MEDIA_ROOT,'broker_codes.txt')) as json_file:#this loads the parentage dictionary that I made
             big_codes_dict = json.load(json_file)
-        self.alerce_codes = big_codes_dict['alerce_codes']
+        self.alerce_codes = big_codes_dict['alerce_stamp_codes']
+        self.alerce_codes.update(big_codes_dict['alerce_lc_codes'])
         self.las_codes = big_codes_dict['las_codes']
         self.fink_codes = big_codes_dict['fink_codes']
-        
-        with open('/home/bmills/bmillsWork/tom_test/mytom/SIMBAD_otypes_labels.txt') as f:#this uses a file downloaded for simbad to deal with old codes
+
+        with open(path.join(settings.MEDIA_ROOT,'SIMBAD_otypes_labels.txt')) as f:#this uses a file downloaded for simbad to deal with old codes
             for line in f:
                 [_, code, old, new] = line.split('|')
                 self.fink_codes[old.strip()] = code.strip()
                 self.fink_codes[new.strip()] = code.strip()
-        with open('/home/bmills/bmillsWork/tom_test/mytom/variability.txt') as json_file:#this loads the parentage dictionary that I made
+        with open(path.join(settings.MEDIA_ROOT,'variability.txt') )as json_file:#this loads the parentage dictionary that I made
             self.parents_dict = json.load(json_file)
         
 
